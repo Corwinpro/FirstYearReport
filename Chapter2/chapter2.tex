@@ -117,7 +117,7 @@ Gathering the rest terms provides the necessary adjoint boundary and initial con
 \end{align}
 \end{subequations}
 
-The first two conditions (\ref{eq:BurgEqAdjBCt0}) and (\ref{eq:BurgEqAdjBCtT}) are sensitivity to the initial condition $u(x,0) = u_0$ and the adjoint initial condition, which says that $\lambda(x,T) = 0$; the following two are adjoint boundary conditions, and the two last give us the values of $C_{\alpha}, C_{\beta}$ at $x = A$ and $x = B$, respectively.
+The first two conditions (\ref{eq:BurgEqAdjBCt0}) and (\ref{eq:BurgEqAdjBCtT}) are sensitivity to the initial condition $u(x,0) = u_0$ and the adjoint initial condition, which says that $\lambda(x,T) = 0$; the following two are the adjoint boundary conditions, and the last two give us the values of $C_{\alpha}, C_{\beta}$ at $x = A$ and $x = B$, respectively.
 
 Finally, from (\ref{eq:BurgEqAdj}) it is clear, that the sensitivity with respect to the boundary condition $u(A,t) = f(t)$ equals to:
 
@@ -128,10 +128,51 @@ Finally, from (\ref{eq:BurgEqAdj}) it is clear, that the sensitivity with respec
 And consequently, the gradient of the cost function with respect to $f(t)$ becomes:
 
 \begin{equation}
-\nabla \mathcal{J}[f] = C_{\alpha} = -2 \nu u_x (A,t) + \nu \lambda_x (A,t)
+\nabla \mathcal{J}[f] = \left\{ C_{\alpha} \right\} = \left\{ -2 \nu u_x (A,t) + \nu \lambda_x (A,t) \right\}
 \end{equation}
 
 \subsection{Shape optimization of linear acoustic problem}
+
+Now we consider the one-dimensional wave equation in frequency domain, or the Helmholtz equation:
+
+\begin{equation}
+    P_{xx} - s^2 P = 0
+\end{equation}
+
+This is a spectral problem, where $P_k$ and $s_k$ represent a $k-$th eigenfunction (or natural mode) and an eigenvalue of the given system. The general solution can be written as: $P_k = a_k sin(s_k x) + b_k cos(s_k x)$, where $a_k, b_k$ are some constants subject to boundary conditions.
+
+We aim to perform shape optimization to minimize eigenvalues of the problem; namely, since the problem is 1D, we will find the derivative of the eigenvalue with respect to the position of the left boundary. Without loss of generality, let the initial domain be $x \in [0,1]$, and let us call $V$ the perturbation of the boundary $x = 0$, such that the deformed domain is $x \in [V, 1]$. Additionally, we can recast the cost function to become $\mathcal{J} = \sigma = s^2$.
+
+The augmented cost function for the problem is defined by:
+
+\begin{equation}
+\label{eq:HelmhAdj}
+    \mathcal{L} = \mathcal{J} + \left<\lambda, P_{xx} - \sigma P \right>
+\end{equation}
+
+Note, that we can construct the Lagrangian without knowing the boundary conditions; in contrast to the previous section, we will apply boundary conditions after the Lagrangian variation is obtained.
+
+Integration by parts and taking the variation of the augmented cost function (\ref{eq:HelmhAdj}) leads to:
+
+\begin{subequations}
+\begin{align}
+    0 = \delta \mathcal{L} = \delta \sigma + \left<\lambda_{xx} - \sigma \lambda , \delta P \right> - \delta \sigma \left< \lambda, P \right> - \\
+    - \lambda_x \delta P \rvert^1_0 +  \lambda, \delta P_x \rvert^1_0
+\end{align}
+\end{subequations}
+
+We can extract two relevant equations from this expression: first, gathering the terms of $\left<\cdot , \delta P \right> $ and the terms proportional to $\delta \sigma$. These yield:
+
+\begin{subequations}
+\begin{align}
+    & \delta P: \ \  \lambda_{xx} - \sigma \lambda = 0, \\
+    & \delta \sigma: \ \ 1 - \left<\lambda, P \right> = 0.
+\end{align}
+\end{subequations}
+
+The first equation is a differential equation of the adjoint state; the second one is a normalization condition.
+
+Now, we have two boundary terms left, and further derivation of the adjoint boundary condition will depend on the choice of the direct formulation. Here we consider three different cases: dual Dirichlet boundary conditions, dual Neumann boundaries, and a Dirichlet plus Robin boundary conditions.
 
 \clearpage
 
