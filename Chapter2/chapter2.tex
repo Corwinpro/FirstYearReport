@@ -136,12 +136,13 @@ And consequently, the gradient of the cost function with respect to $f(t)$ becom
 Now we consider the one-dimensional wave equation in frequency domain, or the Helmholtz equation:
 
 \begin{equation}
+\label{eq:HelmholtzEq}
     P_{xx} - s^2 P = 0
 \end{equation}
 
 This is a spectral problem, where $P_k$ and $s_k$ represent a $k-$th eigenfunction (or natural mode) and an eigenvalue of the given system. The general solution can be written as: $P_k = a_k sin(s_k x) + b_k cos(s_k x)$, where $a_k, b_k$ are some constants subject to boundary conditions.
 
-We aim to perform shape optimization to minimize eigenvalues of the problem; namely, since the problem is 1D, we will find the derivative of the eigenvalue with respect to the position of the left boundary. Without loss of generality, let the initial domain be $x \in [0,1]$, and let us call $V$ the perturbation of the boundary $x = 0$, such that the deformed domain is $x \in [V, 1]$. Additionally, we can recast the cost function to become $\mathcal{J} = \sigma = s^2$.
+We aim to perform shape optimization to minimize eigenvalues of the problem; namely, since the problem is 1D, we will find the derivative of the eigenvalue with respect to the position of the left boundary. Without loss of generality, let the initial domain be $x \in [0,1]$, and let us call $V$ the boundary displacement field at $x = 0$, such that the deformed domain is $x \in [tV, 1]$. Here $t$ is a parameter which governs the amplitude of the displacement.  Additionally, we can recast the cost function to become $\mathcal{J} = \sigma = s^2$.
 
 The augmented cost function for the problem is defined by:
 
@@ -157,7 +158,7 @@ Integration by parts and taking the variation of the augmented cost function (\r
 \begin{subequations}
 \begin{align}
     0 = \delta \mathcal{L} = \delta \sigma + \left<\lambda_{xx} - \sigma \lambda , \delta P \right> - \delta \sigma \left< \lambda, P \right> - \\
-    - \lambda_x \delta P \rvert^1_0 +  \lambda, \delta P_x \rvert^1_0
+    - \left( \lambda_x , \delta P \right) \rvert^1_0 + \left( \lambda , \delta P_x \right) \rvert^1_0
 \end{align}
 \end{subequations}
 
@@ -166,6 +167,7 @@ We can extract two relevant equations from this expression: first, gathering the
 \begin{subequations}
 \begin{align}
     & \delta P: \ \  \lambda_{xx} - \sigma \lambda = 0, \\
+    \label{eq:HelmAdjNormCond}
     & \delta \sigma: \ \ 1 - \left<\lambda, P \right> = 0.
 \end{align}
 \end{subequations}
@@ -173,6 +175,85 @@ We can extract two relevant equations from this expression: first, gathering the
 The first equation is a differential equation of the adjoint state; the second one is a normalization condition.
 
 Now, we have two boundary terms left, and further derivation of the adjoint boundary condition will depend on the choice of the direct formulation. Here we consider three different cases: dual Dirichlet boundary conditions, dual Neumann boundaries, and a Dirichlet plus Robin boundary conditions.
+
+\textbf{Case 1}. Dual Dirichlet boundary conditions.
+
+Let us fix the boundary values $P(0) = P(1) = 0$, therefore the variation $\delta P$ vanishes on the boundaries: $\delta P(0) = \delta P(1) = 0$. This leads to the following representation of the Lagrangian variation:
+
+\begin{equation}
+    \delta \mathcal{L} = \left( \lambda , \delta P_x \right) \rvert^1_0 = 0
+\end{equation}
+
+Remaining terms are proportional to the unknown $\delta P_x$ thus vanish only if $\lambda(0) = \lambda(1) = 0$, which provides us with the necessary boundary conditions. The problem then becomes self-adjoint, since both the state equation and the boundary conditions are the same for the direct and the adjoint state.
+
+\textbf{Case 2}. Dual Neumann boundary conditions.
+
+Almost the same results can be obtained while considering two Neumann boundary conditions: $P_x(0) = P_x(1) = 0$, except that now another boundary term disappears leaving us with:
+
+\begin{equation}
+    \delta \mathcal{L} = -\left( \lambda_x , \delta P \right) \rvert^1_0 = 0
+\end{equation}
+
+Therefore we should impose two homogeneous Neumann boundary conditions on $\lambda$ in order to eliminate unknown variations of $\delta P$. As a consequence, the problem is still self-adjoint with $\lambda_x(0) = \lambda_x(1) = 0$.
+
+\textbf{Case 3}. Dirichlet and Robin boundary conditions.
+
+Finally, let us introduce a mixed boundary condition at $x = 0$ and the Dirichlet at $x = 1$. Namely, $k P(0) - P_x (0) = 0$ and $P(1) = 0$, where $k$ is some given constant. First, the boundary term proportional to $\delta P(1)$ is zero, and the second boundary term at $x=1$ can be zero only if $\lambda(1) = 0$. Then, the remaining expression equals to:
+
+\begin{equation}
+    \delta \mathcal{L} = \left( \lambda_x(0) , \delta P(0) \right) - \left( \lambda(0) , \delta P_x (0) \right)  = 0
+\end{equation}
+
+The variation of the Robin boundary condition allows us to express $\delta P(0)$ or $\delta P_x(0)$ through each other, i.e. $\delta k P(0) = \delta P_x(0)$ and apply this to the boundary terms:
+
+\begin{equation}
+    \delta \mathcal{L} = \left( \lambda_x(0) , \delta P(0) \right) - \left( \lambda(0) , k \delta P (0) \right)  = \left( \lambda_x(0) - k \lambda(0) , \delta P (0) \right) = 0
+\end{equation}
+
+This gives us the Robin boundary condition on $\lambda$, and as we can see, the direct and the adjoint problems are equivalent as well as in the previous cases. These results can be reformulated as follows: the problem (\ref{eq:HelmholtzEq}) with the squared eigenvalue as the objective function is self-adjoint, and in order to obtain the adjoint field $\lambda$ one should apply the normalization condition (\ref{eq:HelmAdjNormCond}).
+
+Following \cite{Schmidt2010}, but with the simplification to 1D case, we can present the full variation (or the material derivative) as a sum of local and spatial derivatives:
+
+\begin{equation}
+    dP[V](x) = \left.\frac{d}{dt} \right\rvert_{t=0} P_t (x_t) = \left.\frac{\partial}{\partial t}\right\rvert_{t=0} P_t + \left.\frac{\partial P}{\partial x}\right\rvert_{t=0} \frac{d x_t}{d t}
+\end{equation}
+
+Here $[V]$ stands for the derivative with respect to shape, and $_t$ index corresponds to the shifted boundary point or the solution in the changed domain. According to the definition $x_t = tV$, so the total derivative becomes:
+
+\begin{equation}
+dP[V](x) = P'[V] + V P_x 
+\end{equation}
+
+Following the same logic, the material derivative of the spatial derivative $P_x$ can be written as:
+
+\begin{equation}
+dP_x[V](x) = \left(P'[V]\right)' + V P_{xx} 
+\end{equation}
+
+Now, to cover all three cases at once, let us derive the shape derivative of the objective function for Case 3. First, from the Robin boundary condition and using the expressions for the material derivatives:
+
+\begin{equation}
+d(P_x - k P) = 0 \ \ \Rightarrow \ \ \left(P'[V]\right)' = k P'[V] + k V P_x -  V P_{xx}
+\end{equation}
+
+And the Lagrangian shape derivative
+
+\begin{subequations}
+\begin{align}
+\mathcal{L}'[V] = \left( \lambda_x , P'[V] \right)_{x = 0} - \left( \lambda , \left(P'[V]\right)'  \right)_{x = 0} = \\
+\label{eq:HelmhShapeDerRobin}
+\left( \lambda_x - k \lambda, P'[V] \right)_{x = 0}- \left( \lambda , k V P_x - VP_{xx}  \right)_{x = 0}
+\end{align}
+\end{subequations}
+
+The first bracket in (\ref{eq:HelmhShapeDerRobin}) is zero due to the boundary condition; since the system is self-adjoint, we can use $P(x)$ instead of $\lambda(x)$ (keeping in mind the normalization condition), and the shape derivative finally is:
+
+\begin{equation}
+\label{eq:HelmholtzEqGrad}
+    d \sigma [V] = V \left( P P_{xx} - k P P_x \right)_{x = 0}
+\end{equation}
+
+Summing up, once the solution of the spectral problem (\ref{eq:HelmholtzEq}) is obtained, to calculate the shape derivative of the cost function $\mathcal{J} = s^2$ with respect to shape one needs to normalize the eigenfunction such way that $1 = \left<P,P\right>$, and then the desired gradient equals to (\ref{eq:HelmholtzEqGrad}).
 
 \clearpage
 
