@@ -11,18 +11,18 @@
     \graphicspath{{Chapter1/Figs/Vector/}{Chapter1/Figs/}}
 \fi
 
-In this chapter we start with the review of the fully compressible Navier-Stokes equations and aim to derive two limit cases: incompressible flow and acoustic flow equations from the power expansion of the initial problem by assuming that the flow is governed by some low characteristic numbers. We will see that in the case of low Mach number of the base and fluctuating flows the initial problem can be split into two sub-problems. Then, we discuss both the strong and the weak forms for each of two cases; finally, we consider possible boundary conditions and their implementation.
+In this chapter we start with the review of the fully compressible Navier--Stokes equations and aim to derive two limit cases: incompressible flow and acoustic flow equations from the power expansion of the initial problem by assuming that the flow is governed by some low characteristic numbers. We will see that in the case of low Mach number of the base and fluctuating flows the initial problem can be split into two sub-problems. Then, we discuss both the strong and the weak forms for each of two cases; finally, we consider possible boundary conditions and their implementation.
 
 \section{Equations of motion}
 
-The full compressible Navier-Stokes equations govern the motion of a fluid with the presence of viscous effects, heat conductivity, compressibility, external body forces and many others. In general, the equations in conservative form are given by \cite{LandauHydro}:
+The full compressible Navier--Stokes equations govern the motion of a fluid with the presence of viscous effects, heat conductivity, compressibility, external body forces and many others. In general, the equations in conservative form are given by \cite{LandauHydro}:
 
 \begin{equation}
-    \partial_t \textbf{q} +  \nabla  \cdot \left(F^c(\textbf{q}) - F^v(\textbf{q}, \nabla \cdot \textbf{q}) \right) = 
+\label{eq:cNSPrimForm}
     \frac{\partial}{\partial t} \textbf{q} + \frac{\partial}{\partial x_k} \left( \textbf{f}^c_k(\textbf{q}) -  \textbf{f}^v_k(\textbf{q}, \nabla \cdot \textbf{q}) \right) = 0 \ \  \ in  \ \Omega
 \end{equation}
 
-Here we use $^c$ and $^v$ referring to convective and viscous parts of the equations. The vector of conservative variables $\textbf{q}$ and the convective flux $F^c(\textbf{q})$ are defined by
+Here we use $^c$ and $^v$ referring to convective and viscous parts of the equations. The vector of conservative variables $\textbf{q}$ and the fluxex $f^c(\textbf{q}), f^v(\textbf{q})$ are defined by
 
 \begin{align}
 \label{eq:cNSFluxes}
@@ -32,80 +32,59 @@ Here we use $^c$ and $^v$ referring to convective and viscous parts of the equat
            \rho u_2 \\
            \rho E
          \end{bmatrix},&
-    f_1^c(\textbf{q}) &= \begin{bmatrix}
+    f_k^c(\textbf{q}) &= \begin{bmatrix}
            \rho u_1 \\
-           \rho u_1^2 + P \\
-           \rho u_1 u_2 \\
-           \rho u_1 H
+           \rho u_1 u_k + P \delta_{1k} \\
+           \rho u_2 u_k + P \delta_{2k}\\
+           \rho u_k H
          \end{bmatrix},&
-    f_2^c(\textbf{q}) &= \begin{bmatrix}
-           \rho u_2 \\
-           \rho u_1 u_2 \\
-           \rho u_2^2 + P \\
-           \rho u_2 H
+    f_k^v(\textbf{q}) &= \begin{bmatrix}
+           0 \\
+           \tau_{k1} \\
+           \tau_{k2} \\
+           \tau_{kj}u_j + \partial_{k} \kappa T
          \end{bmatrix}
   \end{align}
-The viscous fluxes $\textbf{f}^v_{1,2}(\textbf{u})$ are defined by
 
-\begin{align}
-    f_1^v(\textbf{q}) &= \begin{bmatrix}
-           0 \\
-           \tau_{11} \\
-           \tau_{12} \\
-           \tau_{1j}u_j + \partial_{1} \kappa T
-         \end{bmatrix},&
-     f_2^v(\textbf{q}) &= \begin{bmatrix}
-           0 \\
-           \tau_{21} \\
-           \tau_{22} \\
-           \tau_{2j}u_j + \partial_{2} \kappa T
-         \end{bmatrix}
-\end{align}
-Here $\rho, \textbf{v}, P, E$ and $H$ denote the density, velocity vector, pressure, total energy and enthalpy of the flow. We also need to introduce an equation of state, which relates the pressure, density and temperature, i.e. $\rho = \rho(P,T)$. For example, in the case of an ideal gas, expressions for the pressure and enthalpy are given by
-
-\begin{equation}
-    P(\textbf{q}) = (\gamma - 1) \rho e, \ \ \rho e = \rho E - \frac{\rho \textbf{u}^2}{2}
-\end{equation}
-
-\begin{equation}
-    H(\textbf{q}) = \frac{\rho E + P}{\rho} 
-\end{equation}
-
-Static internal energy $e$ is related to the temperature $T$ of the flow by $e = c_v T$, thus
-
-\begin{equation}
-    \kappa T(\textbf{q}) = \frac{\mu \gamma}{Pr} \left(E - \frac{\textbf{u}^2}{2}  \right)
-\end{equation}
-
-Here $Pr$ is a Prandtl number ($Pr = 0.72$ for the ideal gas), $\kappa$ is the thermal conductivity coefficient, and $\mu$ is the dynamic viscosity coefficient.
- 
-The viscous stress tensor equals
+The viscous stress tensor $\tau_{ij}$ is proportional to the dynamic viscosity coefficient $\mu$ and equals to
 
 \begin{equation}
     \tau_{ij} = \mu \left( \nabla_i u_j + \nabla_j u_i - \frac{2}{3} div(\textbf{u}) \  \delta_{ij} \right)
 \end{equation}
 
+Introduced variables $\rho, \textbf{u}, P, E$ and $H$ denote the density, velocity vector, pressure, total energy and enthalpy of the flow:
+
+\begin{subequations}
+    \begin{align}
+        & P(\textbf{q}) = (\gamma - 1) \rho e, \\
+        &\rho E = \rho e + \frac{\rho \textbf{u}^2}{2}, \\
+        &H(\textbf{q}) = \frac{\rho E + P}{\rho}
+    \end{align}
+\end{subequations}
+
+Static internal energy $e$ is related to the temperature $T$ of the flow by $e = c_v T$, where $c_v$ denotes the constant volume heat capacity. We can define the Prandtl number $Pr = \frac{\mu \gamma c_v}{\kappa}$, $\kappa$ is the thermal conductivity coefficient. For example, in the case of an ideal gas, a Prandtl number $Pr = 0.72$. We also need to introduce an equation of state, which relates the pressure, density and temperature, i.e. $\rho = \rho(P,T)$.
+
 Usually, solving these equations is a challenge itself, including choosing an appropriate discretization and numerical methods, which is another noticeable research area. For example, discontinuous Galerkin finite element method \cite{hartmann2008} is a promising candidate to solve the full problem.
 
-\section{Equations of motion in low Mach number limit}
+\section{Equations of motion in the low Mach number limit}
 
-Now, let us introduce two parameters to describe the flow. Here we follow the results presented in \cite{Muller99lowmach} for the low Mach number asymptotics of the Navier-Stokes equations, and \cite{culick2006unsteady} for two-parameter expansion derivation. 
+Now, let us introduce two parameters to describe the flow. Here we follow the results presented in \cite{Muller99lowmach} for the low Mach number asymptotics of the Navier--Stokes equations, and \cite{culick2006unsteady} for two-parameter expansion derivation. 
 
-First, consider that we have a steady fluid flow in a channel with rigid boundaries, and the mean inlet velocity is in order of $1-10$ m/s. Then the Mach number of the base mean flow can be characterized by a small parameter, $\mu = M^b$, since the velocity of the flow is much smaller than the speed of sound $c_s^b = \sqrt{\gamma P^{b}/\rho^{b}}$, such that
+First, consider that we have a steady fluid flow in a channel with rigid boundaries, and the mean inlet velocity is in order of $1-10$ m/s. Then the Mach number of the base mean flow can be characterized by a small parameter, $\mu = M^b$, since the velocity of the flow is much smaller than the speed of sound $c_s^b = \sqrt{\gamma P^{b}/\rho^{b}}$, such that the local Mach number is:
 
 \begin{equation}
 M = \frac{u}{\sqrt{\gamma P^{b}/\rho^{b}}} = \frac{u}{u^{b}} M^{b} \rightarrow 0 \ \ if \ \ M^{b} \rightarrow 0
 \end{equation}
 
-where $^b$ corresponds to the reference base dimensional values describing the flow.
+\noindent where $^b$ corresponds to the reference base dimensional values describing the flow. We choose the reference quantities such that the $u/u^{b}$ is in order of $\mathcal{O}(1)$.
 
-Second, the flow is perturbed by a small boundary oscillations created by a piezo-element. These fluctuations are created at the boundary and propagate inside the channel. The inkjet printing device is designed to create a sequence of small droplets jetting through a tiny orifice, and these oscillations are the primal mechanism of droplets formation at the nozzle outlet boundary [REF]. Although the boundary displacement is negligibly small [REF], acoustic waves form inside the channel and represent an additional physical phenomenon to be studied. This type of fluctuating motion should in some sense be small, and moreover be described by another parameter. Introducing a new small characteristic number, $\varepsilon$, we will use it to define the Mach number of the fluctuating flow.
+Second, the flow is perturbed by a small boundary oscillations created by a piezo-element. These fluctuations are created at the boundary and propagate inside the channel. The inkjet printing device is designed to create a sequence of small droplets jetting through a tiny orifice, and these oscillations are the primal mechanism of droplets formation at the nozzle outlet boundary [REF]. Although the boundary displacement is negligibly small [REF], acoustic waves form inside the channel and represent an additional physical phenomenon to be studied. This type of fluctuating motion should be small in comparison to the mean quantities, and moreover be described by another parameter. Introducing a new small characteristic number, $\varepsilon$, we will use it to define the Mach number of the fluctuating flow.
 
 These two small parameters, $\mu$ and $\varepsilon$, represent different physical phenomena. Consequently, the formal expansion of the governing equations will give us terms with different orders in $\mu, \varepsilon$: $\mathcal{O}(\mu^{k_1}\varepsilon^{k_2})$, where $k_1, k_2$ are some integer numbers (e.g., $k_2 = 0$ for a flow with no oscillations). This generally characterize the flow processes. For example, as will be shown later, setting $\varepsilon$ to zero and collecting terms of $\mathcal{O}(\mu)$ leads to the well-known momentum equation of an incompressible flow.
 
 \subsection{Nondimensionalization}
 
-To perform the following analysis of the low Mach number limit of the equations of motion, it is necessary to define the nondimensional variables. New equations will include dimensionless quantities such as the Reynolds number (if the flow is viscous), the Freude number (if gravity is included into the model), and other considered physical mechanisms.
+To perform the following analysis of the low Mach number limit of the equations of motion, it is necessary to define the nondimensional variables. New equations will include dimensionless quantities such as the Reynolds number (if the flow is viscous), the Froude number (if gravity is included into the model), or, for instance, those related to the considered forces acting on the flow.
 
 Dimensional reference quantities can be based on the far-field conditions, but in the case of the internal flow it seems more natural to refer to the steady flow state without mean flow: $\rho^b, T^b, c_s^b, \mu^b$ (reference density, temperature, speed of sound and viscosity) and a domain size $L$ as a reference length scale. The reference pressure $P^b$ used here is chosen as a function of density and speed of sound: $P^b = \rho^b (c_s^b)^2$. Hence a new set of variables becomes:
 
@@ -120,7 +99,7 @@ Dimensional reference quantities can be based on the far-field conditions, but i
 
 The dimensionless parameters such as the Reynolds number appear in the equations at this stage, with $Re = \rho^b c_s^b L / \mu^b$. These values depend on the choice of the reference values.
 
-While some approaches \cite{culick2006unsteady} are based on the speed of sound dimensionalization, also in some cases choosing a known velocity of the flow (for example, at the inlet) as a reference quantity helps obtaining slightly different and more demonstrative results \cite{Muller99lowmach}. 
+While some approaches \cite{culick2006unsteady} are based on the speed of sound dimensionalization, also in some cases choosing a known velocity of the flow (for example, at the inlet) as a reference quantity helps obtaining slightly different and more demonstrative results, such as temporal multiple scales analysis \cite{Muller99lowmach}. However, this approach is not suitable if the inlet velocity is zero, whilst the speed of sound is never a small quantity. We will use speed of sound as a reference velocity for the compressible flow, and the non-zero inlet velocity in the incompressible case. 
 
 \subsection{Flow values expansion}
 
@@ -131,9 +110,9 @@ As discussed before, physical processes in the flow arise from two different sou
 \rho = \bar{\rho} + \tilde{\rho}, \ \ u = \bar{u} + \tilde{u}, \dots
 \end{equation}
 
-Refering back to the original idea of two parameters analysis, fluctuating values should of the order in amplitude $\varepsilon$, while the mean values may be independent on $\mu$. For instance, consider the no-mean flow configuration when $\mu = 0$, so the dimensional flow density becomes $\rho = \rho^b = \mathcal{O}(1)$. Moreover, it was shown \cite{Muller99lowmach} that the thermodynamic pressure (the zeroth-order part of the pressure variable) is differ from those appearing in the incompressible Navier-Stokes equation by $\mu^2$.
+Refering back to the original idea of two parameters analysis, fluctuating values should be of the order in amplitude $\varepsilon$, while some mean values are in order of 1, not $\mu$. For instance, consider the no-mean flow configuration when $\mu = 0$, so the dimensional flow density becomes $\rho = \rho^b = \mathcal{O}(1)$.
 
-Using the full system of compressible Navier-Stokes and substituting (\ref{eq:NSderMeanFluctExpansion}) into it, the split mass and momentum conservation equations with different order terms become:
+We substitute (\ref{eq:NSderMeanFluctExpansion}) into the full system of compressible Navier--Stokes equations (\ref{eq:cNSPrimForm}) and gather terms which have the same order of magnitude (see Appendix A). In particular, holding only the leading terms in $\mu, \epsilon$, the split mass and momentum conservation equations become:
 
 \begin{equation}
 \label{eq:NSderMassSplit}
@@ -145,9 +124,9 @@ Using the full system of compressible Navier-Stokes and substituting (\ref{eq:NS
 \left[ \partial_t  (\bar{\rho} \bar{u}_i) + \nabla_j (\bar{\rho} \bar{u}_i\bar{u}_j) + \nabla_i \bar{P} - \frac{1}{Re} \nabla_j \bar{\tau}_{ij} \right] + \left[ \partial_t (\bar{\rho} \tilde{u}_i) + \nabla_i \tilde{P} - \frac{1}{Re} \nabla_j \tilde{\tau}_{ij} \right] +  \mathcal{O}(\varepsilon^2, \varepsilon \mu, \dots) = 0
 \end{equation}
 
-The first bracket in both (\ref{eq:NSderMassSplit}) and (\ref{eq:NSderMomenSplit}) contains only terms depending on $\mu$, and the second bracket gathers the terms of $\mathcal{O}(\varepsilon)$. The rest of the equation represents the combination of the mean and fluctuating flow with terms containing both the mean and the fluctuating Mach number, thus describes the interactions between these two physical processes. The full form of these equations is given in Appendix A.
+The first bracket in both (\ref{eq:NSderMassSplit}) and (\ref{eq:NSderMomenSplit}) contains only terms related to the mean state $\bar{\mathbf{q}}$, and the second bracket gathers the fluctuating quantities $\tilde{\mathbf{q}}$. The rest of the equations represents the combination of the mean and fluctuating flow with terms containing both Mach numbers, thus describes the interactions between these two physical processes.
 
-Direct consideration of first bracket in (\ref{eq:NSderMomenSplit}) shows that all terms are proportional to some power of $\mu$: mean density $\bar{\rho}$ has the leading term of $\mathcal{O}(1)$ as shown before, the temporal derivative and the Reynolds number are proportional to $\mu$ since the speed of sound was chosen to nondimensionalize them (it can be clearly seen from (\ref{eq:NSderDimens}) that by choosing $u^b$ instead of $c_s^b$ as a reference velocity quantity results in the $u^b/c_s^b = \mathcal{O}(\mu)$ term appearing). Consequently, all terms in the first bracket of (\ref{eq:NSderMomenSplit}) are $\mathcal{O}(\mu^2)$ except the pressure gradient, which should be in order of $\mathcal{O}(1)$. To understand this seeming discrepancy, let us follow \cite{Muller99lowmach} and expand pressure in power series of $\mu$:
+Direct consideration of the first bracket in (\ref{eq:NSderMomenSplit}) shows that all terms are proportional to some power of $\mu$: mean density $\bar{\rho}$ has the leading term of $\mathcal{O}(1)$ as shown before, the temporal derivative and the Reynolds number are proportional to $\mu$ since the speed of sound was chosen to nondimensionalize them (it can be clearly seen from (\ref{eq:NSderDimens}) that by choosing $u^b$ instead of $c_s^b$ as a reference velocity quantity results in the $u^b/c_s^b = \mathcal{O}(\mu)$ term appearing). Consequently, all terms in the first bracket of (\ref{eq:NSderMomenSplit}) are $\mathcal{O}(\mu^2)$ except the pressure gradient, which should be in order of $\mathcal{O}(1)$. To understand this seeming discrepancy, let us follow \cite{Muller99lowmach} and expand pressure in power series of $\mu$:
 
 \begin{equation}
 \bar{P} = \bar{P}_0 + \mu \bar{P}_1 + \mu^2 \bar{P}_2 + \mathcal{O}(\mu^3)
@@ -163,18 +142,18 @@ Now, applying this expansion to the first bracket of (\ref{eq:NSderMomenSplit}) 
 \end{flalign}
 \end{subequations}
 
-Performing similar analysis for the energy equation an considering the mean flow quantities behavior, it becomes clear that the zeroth and first order pressure terms are related to the total energy density and act like a thermodynamic pressure. The second order term $\bar{P}^2$ however plays a similar role as the pressure in the incompressible Navier-Stokes equation.
+Performing similar analysis for the energy equation and considering the mean flow quantities behavior, it becomes clear that the zeroth and first order pressure terms are related to the total energy density and act like a thermodynamic pressure. The second order term $\bar{P}^2$ however plays a similar role as the pressure in the incompressible Navier--Stokes equation.
 
-To finally derive the incompressible Navier-Stokes equation, assume that the variation of density and temperature of the flow is small in comparison to the no-flow state, $||\delta \bar{\rho}|| = ||\bar{\rho} - \rho^b|| \ll || \rho^b ||$. This leads us to the Boussinesq equations \cite{Rehm}, and also assuming that the temperature and thus the density variation are zero, we finally get:
+To finally derive the incompressible Navier--Stokes equation, assume that the variation of density and temperature of the flow is small in comparison to the no-flow state, $||\delta \bar{\rho}|| = ||\bar{\rho} - \rho^b|| \ll || \rho^b ||$, or, in other words, $\delta \bar{\rho} = \mathcal{O}(\mu)$. This leads us to the Boussinesq buoyancy equations \cite{Rehm}, which to the lowest order in $\mu$ results in:
 
 \begin{subequations}
 \begin{align}
         div(\bar{u}) = 0, \\
-        \bar{\rho} \partial_t  (\bar{u}_i) + \bar{\rho} (\bar{u}_j \nabla_j)\bar{u}_i + \nabla_i \bar{P_2} - \frac{1}{Re} \nabla_j \bar{\tau}_{ij} = 0
+        \bar{\rho} \partial_t  (\bar{u}_i) + \bar{\rho} (\bar{u}_j \nabla_j)\bar{u}_i + \nabla_i \bar{P}_2 - \frac{1}{Re} \nabla_j \bar{\tau}_{ij} = 0
 \end{align}
 \end{subequations}
 
-The second brackets in (\ref{eq:NSderMassSplit}) and (\ref{eq:NSderMomenSplit}) are the acoustic motion of the flow; terms are proportional to $\varepsilon$ and do not contain information about the mean flow. Since the first brackets were shown to be zero, we can conclude that they also should be zero, leading us to the equations of linear acoustics:
+The second brackets in (\ref{eq:NSderMassSplit}) and (\ref{eq:NSderMomenSplit}) are the acoustic motion of the flow; terms are proportional to $\varepsilon$ and do not contain information about the mean flow. Since the first bracket terms were shown to be zero, we can conclude that the second bracket terms should also be zero, leading us to the equations of linear acoustics:
 
 \begin{subequations}
 \label{eq:acousticT}
@@ -185,14 +164,16 @@ The second brackets in (\ref{eq:NSderMassSplit}) and (\ref{eq:NSderMomenSplit}) 
 \end{subequations}
 
 Necessary to note, that the problem can be separated in two smaller problems: incompressible mean flow and linear acoustics, only due to the fact that we assumed terms of $\mathcal{O}(\varepsilon^2, \varepsilon \mu, \dots)$ to be small and therefore we neglect the interaction between the mean flow and the fluctuating flow. Otherwise, mean state $\bar{\mathbf{q}}$ and fluctuating state $\tilde{\mathbf{q}}$ are coupled through the higher order terms which represent mass, momentum and energy transfer between them.
-\clearpage
-\section{Mean flow in low Mach number limit}
 
-Low Mach number expansion of the Navier-Stokes equations results in the mass and momentum conservation laws of incompressible base flow and classical linear acoustic problem. In this section we consider both steady and unsteady incompressible flow and briefly discuss the governing equations and weak formulation.
+
+\clearpage
+\section{Mean flow in the low Mach number limit}
+
+Low Mach number expansion of the Navier--Stokes equations results in the mass and momentum conservation laws of incompressible base flow and classical linear acoustic problem. In this section we consider both steady and unsteady incompressible flow and briefly discuss the governing equations and weak formulation.
 
 \subsection{Problem statement}
 
-Incompressible Navier-Stokes equation can be considered as an equation of motion plus a constraint, that makes the flow divergenceless. The pressure variable is not directly related to the thermodynamic state, and adjusts in a way that the velocity constraint is satisfied. The governing equations are:
+Incompressible Navier--Stokes equation can be considered as an equation of motion plus a constraint, that makes the flow divergenceless. The pressure variable is not directly related to the thermodynamic state, and adjusts in a way that the velocity constraint is satisfied. The governing equations are:
 
 \begin{subequations}
 \label{eq:IncNSeqFull}
@@ -204,7 +185,7 @@ Incompressible Navier-Stokes equation can be considered as an equation of motion
     \end{align}
 \end{subequations}
 
-This dimensionless form contains a characteristic Reynolds number $Re$, which defines the flow behaviour. Previously, speed of sound was used as a reference speed; however, in this case it seems more natural to dimensionalize velocity by some known value related to the base flow itself, for example, inlet velocity. Then, Reynolds number is defined as $Re = \frac{\rho U_{in} L}{\mu}$.
+This dimensionless form contains a characteristic Reynolds number $Re$, which defines the flow behaviour. Previously, speed of sound was used as a reference speed; however, in this case it is necessary to dimensionalize velocity by some known value related to the base flow itself, for example, inlet velocity, since there is no meaningful sound speed. Then, Reynolds number is defined as $Re = \frac{\rho U_{in} L}{\mu}$.
 
 We consider four types of boundary conditions:
 
@@ -216,9 +197,9 @@ We consider four types of boundary conditions:
     u = U_{in} \ \ on \ \ \Gamma_{in}
     \end{equation}
     
-    \item Noslip boundary
+    \item No slip boundary
     
-    Noslip boundary imposes no flow through the wall, and adhesion condition for viscous flows. Then, both normal and tangential velocity components are zero and the noslip Dirichlet boundary condition becomes:
+    No slip boundary imposes no flow through the wall, and adhesion condition for viscous flows. Then, both normal and tangential velocity components are zero and the no slip Dirichlet boundary condition becomes:
    
     \begin{equation}
     u = 0 \ \ on \ \ \Gamma_{nsl}
@@ -250,16 +231,16 @@ Additionally, in the case of unsteady flow, initial condition $u(x,t=0)$ should 
 
 Consider for now that the flow is steady, $\frac{\partial u_i}{\partial t} = 0$, and here we aim to construct a weak form of the reduced problem. Non-zero time derivative will be taken into account in the following section. 
 
-First, we multiply the incompressible Navier-Stokes equation (\ref{eq:IncNSeq}) by vector test function, $v_i$, and the divergence constraint (\ref{eq:div0cons}) by scalar function, $q$, and integrate both over the computational domain. Second, we integrate the highest order derivatives, $-\frac{1}{Re}\Delta u_i$ and $\nabla_i P$ by parts and collect all the integrals together. This leads to:
+First, we multiply the incompressible Navier--Stokes equation (\ref{eq:IncNSeq}) by vector test function, $v_i$, and the divergence constraint (\ref{eq:div0cons}) by scalar function, $q$, and integrate both over the computational domain. Second, we integrate the highest order derivatives, $-\frac{1}{Re}\Delta u_i$ and $\nabla_i P$ by parts and collect all the integrals together. This leads to:
 
 \begin{equation}
 \label{eq:IncNSWeakForm}
 \left<v_i (u_j \nabla_j) u_i - P div(v) + \frac{1}{Re}\nabla_j v_i \nabla_j u_i - q div(u)\right> + \left\{ vi \left( P n_i - \frac{1}{Re} \frac{\partial u_i}{\partial n} \right) \right\} = 0
 \end{equation}
 
-The boundary integral disappears completely due to the boundary conditions. Inlet and noslip Dirichlet boundaries result in $v = 0$ since the choice of test function is arbitrary. Slip boundary sets both $u_{\tau}, v_{\tau}$ to zero and the remaining term vanishes due to the symmetry (or, equivalently, no shear stress at the boundary). Outlet boundary condition is exactly the last boundary integral multiplyed by some function, such that the last remaining term is zero everywhere.
+The boundary integral disappears completely due to the boundary conditions. Inlet and no slip Dirichlet boundaries result in $v = 0$ since the choice of test function is arbitrary. Slip boundary sets both $u_{\tau}, v_{\tau}$ to zero and the remaining term vanishes due to the symmetry (or, equivalently, no shear stress at the boundary). Outlet boundary condition is exactly the last boundary integral multiplyed by some function, such that the last remaining term is zero everywhere.
 
-Summing up, the weak form of the incompressible Navier-Stokes equation with the given boundary types contains only a volumetric integral, with Dirichlet boundary conditions for inlet, slip and noslip boundaries.
+Summing up, the weak form of the incompressible Navier--Stokes equation with the given boundary types contains only a volumetric integral, with Dirichlet boundary conditions for inlet, slip and no slip boundaries.
 
 \subsection{Newton method}
 
@@ -269,7 +250,7 @@ The problem (\ref{eq:IncNSeqFull}) is nonlinear, the convective term is proporti
 \mathbb{R}(q) = \left<v_i (u_j \nabla_j) u_i - P div(v) + \frac{1}{Re}\nabla_j v_i \nabla_j u_i - q div(u)\right>
 \end{equation}
 
-It should be zero if $q = (u,P)$ satisfies the incompressible Navier-Stokes equation. Consider we have an initial guess of the flow state $q_0 = (u_0, P_0)$, which can be chosen zero everywhere or satisfy the linear Stokes equation. We employ a Newton method to solve the nonlinear system with a known initial guess. To find the next iterate we linearize the residual form by taking the Frechet derivative with respect to state $q$. Linearization of the Dirichlet boundary conditions is straightforward, which finally gives:
+It should be zero if $q = (u,P)$ satisfies the incompressible Navier--Stokes equation. Consider we have an initial guess of the flow state $q_0 = (u_0, P_0)$, which can, for instance, be chosen zero everywhere or satisfy the linear Stokes equation. We employ a Newton method to solve the nonlinear system with a known initial guess. To find the next iterate we linearize the residual form by taking the Frechet derivative with respect to state $q$. Linearization of the Dirichlet boundary conditions is straightforward, which finally gives:
 
 \begin{equation}
 \label{eq:IncNSFrechet}
@@ -288,7 +269,7 @@ A damped Newton method can be useful for some problems. It means, that the solut
 
 \subsection{Unsteady mean flow}
 
-Now, consider time-dependent Navier-Stokes equation, with a new residual form to be introduced:
+Now, consider time-dependent Navier--Stokes equation, with a new residual form to be introduced:
 
 \begin{equation}
     \mathbb{N}(q(t)) = \left< v_i \frac{\partial u_i}{\partial t} \right> + \mathbb{R}(q(t))
@@ -321,13 +302,18 @@ Here linear system is solved for $\delta q$, $u^n$ corresponds to the known velo
 
 The advantage of this approach is only a little difference from the steady formulation. First, the time derivative term $v_i \frac{\delta u_i}{\Delta t}$ is added to the bilinear form, and second, the semi-time derivative $\frac{u^{n}_i - u_i}{\Delta t}$ appears on the linear form. Essentially, the solution process doesn't differ from that previously discussed. 
 \clearpage
+
+
+
+
+
 \section{Acoustic flow in low Mach number limit}
 
-In the previous sections we discussed the technique of splitting the initial set of compressible Navier-Stokes equations into two smaller problems, the incompressible mean flow and the acoustic flow, governed by two small parameters, $\mu$ and $\varepsilon$, respectively. Here we consider the acoustic, or the fluctuating flow created by an oscillating piezo-element boundary. We develop the general strong and weak formulation of the acoustic problem, types of boundary conditions relevant to the problem, to finally obtain the adjoint system and the stability sensitivity to the changes in shape.
+In the previous sections we discussed the technique of splitting the initial set of compressible Navier--Stokes equations into two smaller problems, the incompressible mean flow and the acoustic flow, governed by two small parameters, $\mu$ and $\varepsilon$, respectively. Here we consider the acoustic, or the fluctuating flow created by an oscillating piezo-element boundary. We develop the general strong and weak formulation of the acoustic problem, types of boundary conditions relevant to the problem, to finally obtain the adjoint system and the stability sensitivity to the changes in shape.
 
 \subsection{Problem statement}
 
-We recall the result of the low Mach number expansion, and the linear acoustic equations (\ref{eq:acousticT}) will be the primal object of interest. An additional assumption to be made is that the flow is isentropic: since the viscous source term in the energy equation (\ref{eq:cNSFluxes}) is proportional only to the squared amplitude of the velocity $\mathcal{O}(u_i^2)$, this allows us to assume that the energy production due to the viscosity is small thus making our flow isentropic for the purpose of relating $\tilde{P}$ to $\tilde{\rho}$. Note that we retain viscosity in the momentum equation, where it appears at first order in $u_i$. The isentropic flow property allows us to eliminate the pressure term in the momentum equation which in dimensional case is related to density through the speed of sound, $c_s$: $\nabla \tilde{P} = c_s^2 \nabla \tilde{\rho}$. Summing up, the remaining dimensional continuity and momentum equations are:
+We recall the result of the low Mach number expansion, and the linear acoustic equations (\ref{eq:acousticT}) will be the primal object of interest. Since the viscous source term in the energy equation (\ref{eq:cNSFluxes}) is proportional only to the squared amplitude of the velocity $\mathcal{O}(u^2)$, this allows us to assume that the energy production due to the viscosity is small thus making our flow isentropic for the purpose of relating $\tilde{P}$ to $\tilde{\rho}$. Note that we retain viscosity in the momentum equation, where it appears at first order in $u$. The isentropic flow property allows us to eliminate the pressure term in the momentum equation which in dimensional case is related to density through the speed of sound, $c_s$: $\nabla \tilde{P} = c_s^2 \nabla \tilde{\rho}$. Summing up, the remaining dimensional continuity and momentum equations are:
 
 \begin{subequations}
 \label{eq:linNS}
@@ -337,18 +323,24 @@ We recall the result of the low Mach number expansion, and the linear acoustic e
 \end{align}
 \end{subequations}
 
-For the purpose of the stability analysis of the acoustic problem, instead of solving the unsteady problem we move to the frequency domain assuming solutions in form of $\tilde{\mathbf{q}}(x,t) = \hat{\mathbf{q}}(x) e^{st}$, such that $\partial_t (\rho', u') \rightarrow s (\hat{\rho}, \hat{u})$, where $\hat{\rho}, \hat{u}$ are  complex  amplitudes  and $s$ is a complex  frequency  of  a  mode. New dimensionless variables become: $\tilde{\rho}/\rho_0 \rightarrow \hat{\rho}, \tilde{u}_i / c_s \rightarrow \hat{u}_i , \mu/ (\rho_0 c_s L) \rightarrow \nu \equiv Re^{-1}, s L/c_s \rightarrow s $. We  look  for  a  normal mode  solution, so the  eigenvalue problem can finally be written as:
+For the purpose of the stability analysis of the acoustic problem, instead of solving the unsteady problem we move to the frequency domain assuming solutions in form of $\tilde{\mathbf{q}}(x,t) = \hat{\mathbf{q}}(x) e^{st}$, such that $\partial_t (\rho', u') \rightarrow s (\hat{\rho}, \hat{u})$, where $\hat{\rho}, \hat{u}$ are  complex  amplitudes  and $s$ is a complex  frequency  of  a  mode. New dimensionless variables become: $\tilde{\rho}/\rho_0 \rightarrow \hat{\rho}, \tilde{u}_i / c_s \rightarrow \hat{u}_i , \mu/ (\rho_0 c_s L) \rightarrow \nu \equiv Re^{-1}, s L/c_s \rightarrow s $. We  look  for  a  normal mode solution, so the  eigenvalue problem can finally be written as:
 
 \begin{subequations}
+\label{eq:strViscAc}
 \begin{align}
-\label{eq:SpMassCont}
         -div(\hat{u}) = s \hat{\rho}, \\
         \nabla_i \hat{\rho} - \nu \left(\Delta \hat{u}_i + \frac{1}{3} \nabla_i div(\hat{u}) \right) = - s \hat{u}_i .
 \end{align}
-\label{eq:strViscAc}
 \end{subequations}
 
-The sign of the first equation becomes important for the symmetry of the weak form. 
+The sign of the first equation becomes important for the symmetry of the weak form. The momentum equation can be rewritten in the form of the Newton's law, by introducing a new variable for the stress tensor $\hat{\sigma}_{ij} = - \hat{\rho} \delta_{ij} + \nu \left( \nabla_j \hat{u}_i + \nabla_i \hat{u}_j - 2/3 \delta_{ij} div(\hat{u}) \right)$. The divergence of the stress tensor is an acting force, thus 
+
+\begin{equation}
+s \hat{u}_i = \nabla_j \hat{\sigma}_{ij}
+\end{equation}
+
+Now the acceleration term on the left hand side equals to the force term on the right hand side. We will use the stress tensor notation while formulating the weak problem and the boundary conditions.
+
 
 \subsection{Weak formulation}
 
@@ -357,28 +349,29 @@ Now, the weak form of the given dimensionless eigenvalue problem is introduced. 
 \begin{subequations}
 \begin{align}
         \left< -div(\hat{u}) w \right> =\left< s \hat{\rho} w \right>, \\
-        \left< v_i \left( \nabla_i \hat{\rho} - \nu \left(\Delta \hat{u}_i + \frac{1}{3} \nabla_i div(\hat{u}) \right) \right) \right>= \left<- s \hat{u}_i v_i\right>
+        \left< - v_i \nabla_j \hat{\sigma}_{ij} \right>= \left<- s \hat{u}_i v_i\right>
 \end{align}
 \end{subequations}
-
-The momentum equation can be written in terms of stress tensor, very similar to that of the incompressible flow, $\hat{\sigma}_{ij} = \hat{\rho} \delta_{ij} - \nu \left( \nabla_j \hat{u}_i + \frac{1}{3} \delta_{ij} div(\hat{u}) \right)$, and becomes
-
-\begin{equation}
-        \left< v_i \nabla_j \hat{\sigma}_{ij} \right>= \left<- s \hat{u}_i v_i\right>
-\end{equation}
-
 
 After summation and integration by part the highest order derivatives once we will have several boundary integrals, namely:
 
-\begin{subequations}
+\begin{equation}
 \label{eq:AcousGenerWeak}
+    \left< - div(\hat{u}) w  + \hat{\sigma}_{ij} \nabla_j v_i \right>  - \left\{ v_i n_j \hat{\sigma}_{ij} \right\} = s \left< \hat{\rho} w - \hat{u}_i v_i \right>.
+\end{equation}
+
+The volumetric terms $\left<\dots\right>$  and the boundary terms $\left\{\dots\right\}$ of the weak form are not yet symmetric to the swap of the test functions to trial functions. We won't symmetrize the boundary integrals at this point, but after the boundary conditions are considered. Regarding the volume integrals, from the symmetry of the stress tensor it is clear that:
+
+\begin{subequations}
 \begin{align}
-    \left< - div(\hat{u}) w  - \rho div(v)  + \nu \left(\nabla_j v_i \nabla_j \hat{u}_i + \frac{1}{3} div(v) div(\hat{u}) \right) \right>  + \\
-    \left\{ v_i n_i \hat{\rho}  - \nu \left( v_i n_j \nabla_j \hat{u}_i + \frac{1}{3} v_i n_i div(\hat{u}) \right) \right\} = s \left< \hat{\rho} w - \hat{u}_i v_i \right>.
+        &\left<\hat{\sigma}_{ij} \nabla_j v_i \right> = \left<\frac{1}{2}\hat{\sigma}_{ij} (\nabla_j v_i + \nabla_j v_i) \right>  = \\
+        &\left<- \hat{\rho} div(v) +  \frac{\nu}{2} \left( \nabla_j \hat{u}_i + \nabla_i \hat{u}_j - \frac{2}{3} \delta_{ij} div(\hat{u}) \right) (\nabla_j v_i + \nabla_i v_j) \right> = \\
+        \label{eq:DirWeakSymm}
+        &\left<- \hat{\rho} div(v) +  \frac{\nu}{2} \left( \nabla_j \hat{u}_i + \nabla_i \hat{u}_j - \frac{2}{3} \delta_{ij} div(\hat{u}) \right) (\nabla_j v_i + \nabla_i v_j - \frac{2}{3} \delta_{ij} div(v) ) \right>
 \end{align}
 \end{subequations}
 
-In terms of stress tensor, the boundary integral $\left\{ ... \right\}$ equals to $\left\{ v_i n_j \hat{\sigma}_{ij} \right\}$. The volumetric terms $\left<\dots\right>$ of weak form are symmetric to the swap of the test functions to trial functions, while the boundary terms $\left\{\dots\right\}$ are not. We won't symmetrize them at this point, but after the boundary conditions are considered.
+Substituting (\ref{eq:DirWeakSymm}) back to the (\ref{eq:AcousGenerWeak}), one can see, that by rearranging terms in the volume integral it is possible to maintain symmetry between the test and trial functions.
 
 The weak formulation can be alternatively written in matrix form:
 
@@ -388,96 +381,106 @@ The weak formulation can be alternatively written in matrix form:
 
 Here \textbf{A},\textbf{B} are the matrix representation of the left and right  hand  side  differential  operators in (\ref{eq:strViscAc}),  $\mathbf{q}_k$ is the state vector $(\hat{\rho}, \hat{u})$, i.e. a natural mode of the system, and $s_k$ is  the $k$-th eigenvalue. 
 
+
+
 \subsection{Boundary conditions}
 
-Since the acoustics is decoupled from the mean flow, we will call inlet and outlet boundaries as a $free$ boundaries, while the slip and noslip boundaries still have the same meaning as for the mean flow problem. Then, boundary conditions for two state variable - density and velocity perturbations $\rho$ and $u$, can be written as:
+Since the acoustics is decoupled from the mean flow, we will call inlet and outlet boundaries $free$ boundaries, while the $slip$ and $no slip$ boundaries still have the same meaning as for the mean flow problem. Then, boundary conditions for two state variables - density and velocity perturbations $\rho$ and $u$, can be written as:
 
 \begin{subequations}
 \begin{align}
-    \hat{u}_{\tau} = 0, \ \ n_j n_i \hat{\sigma}_{ij} = 0 \ \ on  \ \ \Gamma_{free}, \\
+    \hat{\sigma}_{ij} n_j  = 0 \ \ on  \ \ \Gamma_{free}, \\
     \hat{u}_i = 0 \ \ on \ \ \Gamma_{nsl},\\
     \hat{u}_i n_i = 0 \ \ on \ \ \Gamma_{sl}
 \end{align}
 \end{subequations}
 
-It can be shown, that at least when the free boundary has zero curvature, it acts like a pressure (density) node, and zero tangential velocity $u_{\tau} = u - (u,n) n$ and normal component of the stress force is a no stress boundary condition.
+The free boundary condition reads as zero stress on the inlet and outlet boundaries, and in the limit of zero viscosity $\nu \rightarrow 0$ it acts like a pressure (density) node.
 
-Additionally, the presence of a slip boundary intends the symmetry of the system. Then, every variable implies to be either an even or an odd function. In case of the normal velocity, $u_n$, it is odd as a result of the $u_i n_i = 0$ boundary condition. Then it is clearly seen (e.g. from the continuity equation), that two other variables, $\rho$ and $u_{\tau}$ must be even with respect to the normal symmetry. Namely, this gives us an additional boundary condition $\frac{\partial}{\partial n}u_{\tau}= 0$ on the symmetry plane.
+Additionally, the presence of a slip boundary imposes the symmetry of the system. Then, every variable implies to be either an even or an odd function. In case of the normal velocity, $u_n$, it is odd as a result of the $u_i n_i = 0$ boundary condition. Then it is clearly seen (e.g. from the continuity equation), that two other variables, $\rho$ and $u_{\tau}$ must be even with respect to the normal symmetry. This gives us an additional boundary condition $\frac{\partial}{\partial n}u_{\tau}= 0$ on the symmetry plane.
 
-Let us make a small remark regarding a vector's components normal and tangential to a boundary. Consider we have a general expression for a scalar product of a vector $a_i$ and a normal directional derivative of a vector $\frac{\partial b_i}{\partial n}$. It can be shown, that:
+%Let us make a small remark regarding a vector's components normal and tangential to a boundary. Consider we have a general expression for a scalar product of a vector $a_i$ and a normal directional derivative of a vector $\frac{\partial b_i}{\partial n}$. It can be shown, that:
 
-\begin{subequations}
-\begin{align}
-    a_i \frac{\partial b_i}{\partial n} = \left(a_n n_i + a_{\tau} \tau_i \right) n_j \nabla_j \left( b_n n_i + b_{\tau} \tau_i \right) = \\
-    \label{eq:scalProdDirDer}
-    \left(a_n \frac{\partial b_n}{\partial n} + a_{\tau} \frac{\partial b_{\tau}}{\partial n} \right) + \left(a_n b_{\tau} - a_{\tau} b_n \right) n_j n_i \nabla_j \tau_i
-\end{align}
-\end{subequations}
+%\begin{subequations}
+%\begin{align}
+%    a_i \frac{\partial b_i}{\partial n} = \left(a_n n_i + a_{\tau} \tau_i \right) n_j \nabla_j \left( b_n n_i + b_{\tau} \tau_i \right) = \\
+%    \label{eq:scalProdDirDer}
+%    \left(a_n \frac{\partial b_n}{\partial n} + a_{\tau} \frac{\partial b_{\tau}}{\partial n} \right) + \left(a_n b_{\tau} - a_{\tau} b_n \right) n_j n_i \nabla_j \tau_i
+%\end{align}
+%\end{subequations}
 
-Here we denote $n_i$ as $i-$th component of the surface normal vector and ${\tau}_i$ stands for a vector tangent to surface; $a_n, b_n$ are (scalar) projections of two vectors on $n$, and $a_{\tau}, b_{\tau}$ are (scalar) tangent projections. Note, that in (\ref{eq:scalProdDirDer}) there is a term which represents surface curvature; it appears because of the changing direction of surface normal along the boundary. While applying boundary conditions to the weak form, one should be careful not to forget the presence of the surface curvature. However, in many cases both $a_{\tau}$ and $b_{\tau}$ are zero, so the curvature term vanishes. 
+%Here we denote $n_i$ as $i-$th component of the surface normal vector and ${\tau}_i$ stands for a vector tangent to surface; $a_n, b_n$ are (scalar) projections of two vectors on $n$, and $a_{\tau}, b_{\tau}$ are (scalar) tangent projections. Note, that in (\ref{eq:scalProdDirDer}) there is a term which represents surface curvature; it appears because of the changing direction of surface normal along the boundary. While applying boundary conditions to the weak form, one should be careful not to forget the presence of the surface curvature. However, in many cases both $a_{\tau}$ and $b_{\tau}$ are zero, so the curvature term vanishes. 
 
-Now, we can apply these boundary conditions to the weak formulation by introducing different boundary terms. Moreover, it becomes clear how to make the full weak form symmetric and still consistent with the initial problem.
+Now, we can apply these boundary conditions to the weak formulation by introducing different boundary terms. Moreover, it becomes clear how to make the full weak form symmetric and still consistent with the strong form.
 
 \begin{itemize}
   \item Free boundary, $\Gamma_{free}$
   
-  First, free boundary models an open end; thus, a zero normal force boundary condition is considered. We can decompose the vector test function, $v_i$, in two vectors: one with normal component only, and one with tangential; therefore $v_i = v_n n_i + v_{\tau} \tau_i$. This yields:
+  First, free boundary models an open end; thus, a zero force boundary condition is considered. This yields:
+  
+  %\begin{equation}
+  %\left\{ v_i n_j \hat{\sigma}_{ij} \right\}_{\Gamma_{free}} = \left\{ v_n n_i n_j \hat{\sigma}_{ij} + v_{\tau} \tau_i n_j \hat{\sigma}_{ij} \right\}_{\Gamma_{free}}
+  %\end{equation}
+  \begin{equation}
+  \left\{ v_i n_j \hat{\sigma}_{ij} \right\}_{\Gamma_{free}} = 0
+  \end{equation}
+  %The first term on the right hand side vanished due to the force boundary condition, and the second term after substitution of $\hat{\sigma}_{ij}$ becomes:
+  
+  %\begin{equation}
+  %\left\{ - \nu v_{\tau} \tau_i \frac{\partial u_i}{\partial n} \right\}_{\Gamma_{free}}
+  %\end{equation}
+  
+  %The $u_{\tau} = 0$ is a Dirichlet boundary condition, and if one apply the usual finite element Dirichlet boundary condition on the tangential velocity, the corresponding test function $v_{\tau}$ can be (or is automatically) chosen to be zero, thus the boundary term vanished completely. However, in some cases tangential direction is not constant (e.g. if the inlet boundary is curved), therefore it becomes less straightforward how to impose the $u_{\tau}$ value.
+  
+  A possible way to enforce the zero force boundary condition  is to impose it weakly by introducing a penalty boundary term \cite{Nitsche1971}, \cite{freund1995weakly}. We add a symmetric term consistent with the primal formulation, such that the boundary integral over the free surface becomes
+  
+  %\begin{equation}
+  %\left\{ - \nu  v_{\tau} \tau_i \frac{\partial u_i}{\partial n} \right\}_{\Gamma_{free}} = \left\{ - \nu \left( v_{\tau} \tau_i \frac{\partial u_i}{\partial n}  + u_{\tau} \tau_i \frac{\partial v_i}{\partial n} \right) \right\}_{\Gamma_{free}} + \beta \left\{  u_{\tau}  v_{\tau} \right\}_{\Gamma_{free}}
+  %\end{equation}
   
   \begin{equation}
-  \left\{ v_i n_j \hat{\sigma}_{ij} \right\}_{\Gamma_{free}} = \left\{ v_n n_i n_j \hat{\sigma}_{ij} + v_{\tau} \tau_i n_j \hat{\sigma}_{ij} \right\}_{\Gamma_{free}}
+  \frac{\beta}{h} \left\{ \sigma_{ij} n_j , \sigma_{ik}^\dagger n_k \right\}_{\Gamma_{free}}
   \end{equation}
   
-  The first term on the right hand side vanished due to the force boundary condition, and the second term after substitution of $\hat{\sigma}_{ij}$ becomes:
+  Here $\beta$ is a constant coefficient, and $h$ is the triangulation cells size; the ''daggered'' stress tensor takes test functions as variables: $\sigma_{ik}^\dagger = \sigma_{ik} (w, v)$. The updated form of the boundary term is consistent with the initial problem, since $\sigma_{ij} n_j$ vanishes on ${\Gamma_{free}}$.
   
-  \begin{equation}
-  \left\{ - \nu v_{\tau} \tau_i \frac{\partial u_i}{\partial n} \right\}_{\Gamma_{free}}
-  \end{equation}
+  \item No slip boundary, $\Gamma_{nsl}$
   
-  The $u_{\tau} = 0$ is a Dirichlet boundary condition, and if one apply the usual finite element Dirichlet boundary condition on the tangential velocity, the corresponding test function $v_{\tau}$ can be (or is automatically) chosen to be zero, thus the boundary term vanished completely. However, in some cases tangential direction is not constant (e.g. if the inlet boundary is curved), therefore it becomes less straightforward how to impose the $u_{\tau}$ value.
-  
-  A possible solution is to impose the boundary condition weakly \cite{Nitsche1971}. By introducing a symmetric penalty boundary term for the boundary condition itself and a symmetrization boundary term for the existing expression, we obtain:
-  
-  \begin{equation}
-  \left\{ - \nu  v_{\tau} \tau_i \frac{\partial u_i}{\partial n} \right\}_{\Gamma_{free}} = \left\{ - \nu \left( v_{\tau} \tau_i \frac{\partial u_i}{\partial n}  + u_{\tau} \tau_i \frac{\partial v_i}{\partial n} \right) \right\}_{\Gamma_{free}} + \beta \left\{  u_{\tau}  v_{\tau} \right\}_{\Gamma_{free}}
-  \end{equation}
-  
-  Here $\beta$ is a penalty coefficient, which value should be estimated separately. The updated form of the boundary term is consistent with the initial problem, since $u_{\tau}$ should vanish on ${\Gamma_{free}}$.
-  
-  \item Noslip boundary, $\Gamma_{nsl}$
-  
-  Second, the noslip boundary represents a rigid wall with no flow through it, so the velocity is zero at $\Gamma_{nsl}$ and no restriction on density is applied. Even if the noslip boundary is curved, i.e. if the normal and tangential directions depend on the position on the boundary, the Dirichlet boundary condition can be easily applied and thus the test function can be set to zero on $\Gamma_{nsl}$. Note, that the boundary term in (\ref{eq:AcousGenerWeak}) is linear on $v_i$ thus it vanishes.
+  Second, the no slip boundary represents a rigid wall with no flow through it, so the velocity is zero at $\Gamma_{nsl}$ and no restriction on density is applied. Even if the no slip boundary is curved, i.e. if the normal and tangential directions depend on the position on the boundary, the Dirichlet boundary condition can be easily applied and thus the test function can be set to zero on $\Gamma_{nsl}$. Note, that the boundary term in (\ref{eq:AcousGenerWeak}) is linear on $v_i$ thus it vanishes. 
   
   \item Slip boundary, $\Gamma_{sl}$
   
-  Third, the slip or symmetry boundary implies that there is no normal flow, but the tangential velocity is not specified. The slip boundary in viscous flows usually appears as a plane of symmetry, which is a line in 2D or a plane surface in 3D, thus the Dirichlet boundary condition should be generally easy to implement. In other words, the normal velocity should vanish $u_n = 0$ as well as the normal test function can be set to zero $v_n = 0$. Then the boundary term becomes:
+  Third, the slip or symmetry boundary implies that there is no normal flow, but the tangential velocity is not specified. The slip boundary in viscous flows usually appears as a plane of symmetry, which is a line in 2D or a plane surface in 3D, thus the Dirichlet boundary condition should be generally easy to implement. In other words, the normal velocity should vanish $u_n = 0$ as well as the normal test function can be set to zero $v_n = 0$. Assuming the surface normal being constant along the slip boundary, the surface integral becomes:
   
   \begin{equation}
   \begin{aligned}
-  \left\{ v_i n_i \rho  - \nu \left( v_i n_j \nabla_j u_i + \frac{1}{3} v_i n_i div(u) \right) \right\}_{\Gamma_{sl}} =   \left\{ - \nu  v_i \frac{\partial u_i}{\partial n} \right\}_{\Gamma_{sl}} = 
-  \left\{ - \nu  v_{\tau} \frac{\partial u_{\tau}}{\partial n}  \right\}_{\Gamma_{sl}} = 0
+  \left\{ v_i\sigma_{ij} n_j \right\}_{\Gamma_{sl}} =   \left\{ v_n n_i \sigma_{ij} n_j + v_{\tau} \tau_i \sigma_{ij} n_j \right\}_{\Gamma_{sl}} = \\ 
+  \left\{ v_{\tau} \nu \left( \frac{\partial u_{\tau}}{\partial n} + \frac{\partial u_n}{\partial \tau} \right)  \right\}_{\Gamma_{sl}} = 0
   \end{aligned}
   \end{equation}
   
+  The first term vanishes due to the symmetry of the symmetry of the slip plane, and the second term is zero since the normal velocity component is constant in the tangent direction.
+  
   \item Robin (compliant) boundary
   
-  Finally, the last boundary type to be presented is a mixed Robin boundary, or a compliant boundary. Previous boundaries were defined by either Dirichlet or Neumann type of boundary conditions. However, we can assume a mixed case or equivalently a boundary condition which relates the components of the state vector $\hat{\mathbf{q}}$ to each other; or, a value to its gradient. The velocity Robin boundary condition generally appears in the following form:
+  Finally, the last boundary type to be presented is a mixed Robin boundary, or a compliant boundary. Previous boundaries were defined by either Dirichlet or Neumann type of boundary conditions. Furthermore, we can assume a mixed case or equivalently a boundary condition which relates the components of the state vector $\hat{\mathbf{q}}$ to each other; or, a value to its gradient. The velocity Robin boundary condition generally appears in the following form:
   
   \begin{equation*}
-     \frac{\partial u}{\partial n} = \frac{1}{\epsilon} (u - u_0) + f \ \ on \ \ \Gamma_{Rob}
+     \frac{\partial u}{\partial n} = \frac{1}{\varepsilon} (u - u_0) + f \ \ on \ \ \Gamma_{Rob}
   \end{equation*}
   
-  As the parameter $\epsilon$ approaches two limit cases, $\epsilon \to 0$ or $\epsilon \to \infty$, the Robin boundary condition turns into a inhomogeneous Dirichlet or Neumann boundary condition, respectively. The quantities of $u_0$ and $f$ then play role of prescribed velocity of velocity gradients at the boundary. Boundary condition becomes homogeneous when $u_0$ or $f$ are zero.
+  As the parameter $\varepsilon$ approaches two limit cases, $\varepsilon \to 0$ or $\varepsilon \to \infty$, the Robin boundary condition turns into a inhomogeneous Dirichlet or Neumann boundary condition, respectively. The quantities of $u_0$ and $f$ then play role of prescribed velocity or velocity gradient at the boundary. Boundary condition becomes homogeneous when $u_0$ or $f$ are zero.
   
   Following \cite{JuntunenS09}, it is possible to extend the Nitsche approach for imposing Dirichlet boundary condition \cite{Nitsche1971} to broader range of boundary types with $\epsilon \ge 0$. The final weak formulation is consistent, symmetric and successfully compared to the traditional techniques. We refer to \cite{JuntunenS09} for the detailed derivation of the general method, and the following section will consider the particular case of the Robin condition.
 \end{itemize}  
   
 \subsection{Compliant boundary}
 
-We consider the following problem: the domain now acts as a solid structure which boundaries are not fixed and can dispose, reacting to the flow. This is a fluid-structure interaction (FSI) problem, and the modeled geometry and thus the computational domain may change as a result of boundary displacement. When the displacement is big enough to actually affect the mean flow, computational meshes and structure position should be moved. A number of methods describing the motion of fluid particles and mesh nodes exists, for instance the Arbitrary-Lagrange-Eulerian (ALE) approach \cite{Donea1982}. Moving boundary condition prescribes equality of the flow and solid surface quantities, namely kinematic and dynamic conditions. First, as soon as the surface is compliant (in contrast to permeable), the continuity of displacements and velocities is required; second, the stresses in the fluid and the body should be the same \cite{Donea2004}. These conditions couple the fluid-structure system.
+We consider the following problem: the domain now acts as a solid structure which boundaries are not fixed and can displace, reacting to the flow. This is a fluid-structure interaction (FSI) problem, and the modeled geometry and thus the computational domain may change as a result of boundary displacement. When the displacement is big enough to actually affect the mean flow, computational meshes and structure position should be moved. A number of methods describing the motion of fluid particles and mesh nodes exists, for instance the Arbitrary-Lagrange-Eulerian (ALE) approach \cite{Donea1982}. Moving boundary condition prescribes equality of the flow and solid surface quantities, namely kinematic and dynamic conditions. First, as soon as the surface is compliant (in contrast to permeable), the continuity of displacements and velocities is required; second, the stresses in the fluid and the body should be the same \cite{Donea2004}. These conditions couple the fluid-structure system.
 
-Moreover, one can consider a FSI problem when boundaries are compliant, but surface deformation is tiny in comparison to the domain's size. This is the case of the inkjet printer chamber, which height is in order of 100 $\mu$m and the boundary displacement is less than 100 nm. Then the relative displacement is lower than $10^{-3}$ and modelling this phenomena as a full FSI problem with the mesh movement is excessive. However, the flow can differ from those obtained with rigid slip or noslip boundary, especially for the oscillating acoustic quantities. This leads us to the idea of treating the compliant boundary in a more suitable way: with no actual domain and mesh deformation but taking into account the nature of the solid-fluid interaction on this boundary type.
+Moreover, one can consider a FSI problem when boundaries are compliant, but surface deformation is tiny in comparison to the domain's size. This is the case of the inkjet printer chamber, whose height is in order of 100 $\mu$m and the boundary displacement is less than 100 nm. Then the relative displacement is lower than $10^{-3}$ and modelling this phenomena as a full FSI problem with the mesh movement is excessive. However, the flow can differ from those obtained with rigid slip or no slip boundary, especially for the oscillating acoustic quantities. This leads us to the idea of treating the compliant boundary in a more suitable way: with no actual domain and mesh deformation but taking into account the nature of the solid-fluid interaction on this boundary type.
 
-The Robin boundary can describe a boundary which is not fixed and can dispose, reacting to the perturbations in the flow. The acoustic compliant boundary condition links the flow density (or pressure) and velocity at a certain surface point and a complex boundary impedance $Z$ is a function which relates the normal velocity component to pressure \cite{Myers1980}:
+The Robin boundary can describe a boundary which act like a moving membrane, reacting to the perturbations in the flow. The acoustic compliant boundary condition links the flow density (or pressure) and velocity at a certain surface point and a complex boundary impedance $Z$ is a function which relates the normal velocity component to pressure \cite{Myers1980}:
 
 \begin{equation}
 \label{eq:InitImpedAcoustic}
@@ -488,39 +491,31 @@ Furthermore, we should extend this definition for the viscous acoustic problem. 
 
 \begin{equation}
 \label{eq:InitImped}
-Z u_i n_i = n_i n_j \sigma_{ij} =  n_i n_j (-P \delta_{ij} + \tau_{ij})
+Z u_i = \sigma_{ij} n_j  =   (-P \delta_{ij} + \tau_{ij}) n_j
 \end{equation}
 
-Boundary impedance describes the physical properties of the boundary, such as stiffness, elasticity, thickness and others. Usually, the impedance value is known for harmonic motion with a given frequency, making the boundary condition frequency dependent: $Z = Z(s)$. As we discussed before, both acoustic pressure and velocity are considered to be proportional to $(\tilde{P}, \tilde{u}) \sim e^{st}$ thus they can become out of phase due to the complex impedance boundary condition.
+We would neither restrict the velocity to be zero in the tangential direction, nor allow only normal displacements of the compliant boundary. Boundary impedance describes the physical properties of the boundary, such as stiffness, elasticity, thickness and others. Usually, the impedance value is known for harmonic motion with a given frequency, making the boundary condition frequency dependent: $Z = Z(s)$. As discussed before, both acoustic pressure and velocity are considered to be proportional to $(\tilde{P}, \tilde{u}) \sim e^{st}$ thus they can become out of phase due to the complex impedance boundary condition.
 
-To apply the compliant boundary condition to viscous acoustic flow, we need to rearrange some terms in (\ref{eq:InitImped}) and make assumption that only the normal displacement is possible. First, performing low Mach number expansion of the impedance expression and nondimensionalizing it, we obtain an equation of the normal velocity and density fluctuations coupled through the dimensionless acoustic impedance, $\hat{Z} = \frac{Z}{\rho^b c_s^b}$. Second, the pressure fluctuation is substituted with density, and finally, since the flow is viscous and only movement normal to surface is allowed the tangential velocity component is set to zero. Summing up:
+To apply the compliant boundary condition to viscous acoustic flow, we need to rearrange some terms in (\ref{eq:InitImped}). First, performing low Mach number expansion of the impedance expression and nondimensionalizing it, we obtain an equation of the velocity and density fluctuations coupled through the dimensionless acoustic impedance, $\hat{Z} = \frac{Z}{\rho^b c_s^b}$. Second, the pressure fluctuation is substituted with density. Summing up:
 
 \begin{equation}
 \label{eq:BCCompl}
-\hat{u}_{\tau} = 0, \ \ \hat{Z} \hat{u}_i n_i = n_i n_j \hat{\sigma}_{ij} \ \ on \ \ \Gamma_{com}
+\hat{Z} \hat{u}_i= \hat{\sigma}_{ij} n_j  \ \ on \ \ \Gamma_{com}
 \end{equation}
 
-Additionally, from zero tangential velocity it can be seen that $\frac{\partial \hat{u}_{\tau}}{\partial \tau}$ should be fulfilled on compliant surface. Now, we can derive boundary integrals of the weak problem on the compliant boundary. 
+Now, we can derive boundary integrals of the weak problem on the compliant boundary. The boundary relation (\ref{eq:BCCompl}) can now be inserted into the weak form.
 
 \begin{equation}
-\left\{ v_i n_i n_j \hat{\sigma}_{ij} \right\}_{\Gamma_{com}} = \left\{ v_n n_i n_j \hat{\sigma}_{ij} - \nu v_{\tau} \tau_i \frac{\partial \hat{u}_i}{\partial n} \right\}_{\Gamma_{com}}
+\left\{ v_i n_j \hat{\sigma}_{ij} \right\}_{\Gamma_{com}} = \left\{ Z v_i u_i \right\}_{\Gamma_{com}}
 \end{equation}
 
-The boundary relation (\ref{eq:BCCompl}) can now be inserted into the weak form. Some of the terms are not symmetric, so we continue with:
-
-\begin{equation}
-\left\{ ... \right\}_{\Gamma_{com}} = \left\{\hat{Z} v_n \hat{u}_n  - \nu \left( v_{\tau} \tau_i \frac{\partial \hat{u}_i}{\partial n} + \hat{u}_{\tau} \tau_i \frac{\partial v_i}{\partial n}  \right) \right\}_{\Gamma_{com}}
-\end{equation}
-
-The last term proportional to $\hat{u}_{\tau}$ maintains symmetry and is zero.
-
-For the same reason as we did in the free boundary case, additional penalty term should be added to impose Dirichlet boundary condition of $\hat{u}_{\tau} = 0$. Consequently, the compliant boundary integral becomes:
+The boundary integral is symmetric; for the same reason as we did in the free boundary case, additional penalty term should be added to impose compliant boundary condition. Consequently, the compliant boundary integral becomes:
 
 \begin{equation}
 \label{eq:ComplBoundInt}
-\left\{\hat{Z} v_n \hat{u}_n - \nu \left( v_{\tau} \tau_i \frac{\partial \hat{u}_i}{\partial n} + \hat{u}_{\tau} \tau_i \frac{\partial v_i}{\partial n} \right) \right\}_{\Gamma_{com}} + \beta \left\{ \hat{u}_{\tau} v_{\tau} \right\}_{\Gamma_{com}}
+\left\{\hat{Z} v_i u_i \right\}_{\Gamma_{com}} + \frac{\beta}{h} \left\{ Z u_i - \hat{\sigma}_{ij} n_j , Z v_i - \hat{\sigma}_{ij}^{\dagger} n_j \right\}_{\Gamma_{com}}
 \end{equation}
 
-The initial acoustic problem is an eigenvalue problem, and previously the boundary terms were independent on $s$. The first term in (\ref{eq:ComplBoundInt}) is proportional to $\hat{Z}(s)$, so it needs to be moved to the right hand side of the weak form. But then the problem becomes nonlinear on $s$, which requires to introduce some complication to the calculation routine. While this is not preferable, we assume $\hat{Z}$ to be fixed and only rearrange the term directly dependent on $s$. We solve the simplified eigenvalue problem iteratively, substituting the complex frequency into the known impedance function until the convergence criteria is reached. The algorithm for the direct and adjoint problems will be discussed separately.
+The initial acoustic problem is an eigenvalue problem, and previously the boundary terms were independent of $s$. Both terms in (\ref{eq:ComplBoundInt}) is proportional to $\hat{Z}(s)$, so the impedance needs to be moved to the right hand side of the weak form. But then the problem becomes nonlinear on $s$, which requires to introduce some complication to the calculation routine. While this is not preferable, we assume $\hat{Z}$ to be fixed and only rearrange the term directly dependent on $s$. We solve the simplified eigenvalue problem iteratively, substituting the complex frequency into the known impedance function until the convergence criteria is reached. The algorithm for the direct and adjoint problems will be discussed separately.
 
-Finally, two limit cases should be discussed. compliant boundary condition is in close relation to both free and noslip conditions, which is clearly seen from (\ref{eq:BCCompl}). As $\hat{Z} \to 0$, the compliant boundary turns into free surface, i.e. $n_i n_j \hat{\sigma}_{ij} \to 0$. The boundary integral (\ref{eq:ComplBoundInt}) approaches the free boundary term as well. If the impedance amplitude is high, $\hat{Z} \to \infty$, we can expect noslip behavior, and the terms linear on $\hat{Z}$ in (\ref{eq:ComplBoundInt}) dominate, weakly imposing Dirichlet boundary condition on $\Gamma_{com}$ by penalty formulation. The concept of one universal parameter, $\hat{Z}$ in this case, which describes each of the existing boundary types with only one quantity, is quite convenient, since the development of a numerical solver becomes more generalized in comparison to boundaries with different physics behind.
+Finally, two limit cases should be discussed. Compliant boundary condition is in close relation to both free and no slip conditions, which is clearly seen from (\ref{eq:BCCompl}). As $\hat{Z} \to 0$, the compliant boundary turns into the free surface, i.e. $n_j \hat{\sigma}_{ij} \to 0$. The boundary integral (\ref{eq:ComplBoundInt}) approaches the free boundary term as well. If the impedance amplitude is high, $\hat{Z} \to \infty$, we can expect no slip behavior, and the terms proportional to $\hat{Z}$ in (\ref{eq:ComplBoundInt}) dominate, weakly imposing Dirichlet boundary condition on $\Gamma_{com}$ by penalty formulation. The concept of one universal parameter, $\hat{Z}$ in this case, which describes each of the existing boundary types with only one quantity, is quite convenient, since the development of a numerical solver becomes more generalized in comparison to boundaries with different physics behind.
