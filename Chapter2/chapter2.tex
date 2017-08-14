@@ -28,7 +28,7 @@ To start with, we consider two one-dimensional optimization problems: parameter-
 
 \subsection{Burgers equation: sensitivity to control parameters}
 
-Burgers equation (\ref{eq:BurgEq}), is a nonlinear partial differential equation describing one-dimensional viscous fluid. We consider it to be defined in closed spatial domain $x \in [A,B]$ and for time interval $t \in [0, T]$.
+Burgers equation (\ref{eq:BurgEq}) is a nonlinear partial differential equation describing one-dimensional viscous fluid. We consider it to be defined in closed spatial domain $x \in [A,B]$ and for time interval $t \in [0, T]$.
 
 \begin{equation}
 \label{eq:BurgEq}
@@ -52,9 +52,9 @@ Here the left boundary condition, $f(t)$, will act as a control parameter. We wo
 \mathcal{J} = \left[ \nu \left( \frac{\partial u}{\partial x} \right)^2 \right]
 \end{equation}
 
-Following \cite{CossuIntr}, in this example we will treat initial and boundary conditions (\ref{eq:BurgEqBCs}) as given constraints, i.e. in the same as the Burgers equation itself. Another approach, which leads to the same result, is to apply given boundary conditions after the augmented cost function is formed.
+Following \cite{CossuIntr}, in this example we will treat initial and boundary conditions (\ref{eq:BurgEqBCs}) as given constraints, i.e. in the same way as the Burgers equation. Another approach, which leads to the same result, is to apply given boundary conditions after the augmented cost function is formed.
 
-The first step is to form a so-called Lagrangian of the system, by adding all state equations multiplied by Lagrange variables to the cost function. This gives:
+The first step is to form the Lagrangian of the system, by adding all state equations multiplied by Lagrange variables to the cost function. This gives:
 
 \begin{subequations}
 \begin{align}
@@ -64,7 +64,7 @@ The first step is to form a so-called Lagrangian of the system, by adding all st
 \end{align}
 \end{subequations}
 
-Here $\lambda$ is an Lagrange state multiplier, $b$ and $C_{\alpha}, C_{\beta}$ are Lagrange multipliers for initial and boundary conditions, respectively. One can see, that partial derivatives of $\mathcal{L}$ with respect to $\lambda$ produce initial state equation, and initial and boundary equations while differentiation with respect to $b, C_{\alpha}, C_{\beta}$. To construct the adjoint operator, we integrate the differential form in (\ref{eq:BurgEqAdj0}) by parts and apply divergence theorem, which results in:
+Here $\lambda$ is an Lagrange state multiplier, $b$ and $C_{\alpha}, C_{\beta}$ are Lagrange multipliers for initial and boundary conditions, respectively. One can see, that partial derivatives of $\mathcal{L}$ with respect to $\lambda$ produce initial state equation, and initial and boundary equations while differentiation with respect to $b, C_{\alpha}, C_{\beta}$. To construct the adjoint operator, we integrate the differential form in (\ref{eq:BurgEqAdj0}) by parts and apply the divergence theorem, which results in:
 
 \begin{subequations}
 \label{eq:BurgEqAdj}
@@ -246,14 +246,21 @@ And the Lagrangian shape derivative
 \end{align}
 \end{subequations}
 
-The first bracket in (\ref{eq:HelmhShapeDerRobin}) is zero due to the boundary condition; since the system is self-adjoint, we can use $P(x)$ instead of $\lambda(x)$ (keeping in mind the normalization condition), and the shape derivative finally is:
+Since the system is self-adjoint, we can use $P(x)$ instead of $\lambda(x)$ (keeping in mind the normalization condition), the first bracket in (\ref{eq:HelmhShapeDerRobin}) is zero due to the boundary condition; and the shape derivative finally is:
 
 \begin{equation}
 \label{eq:HelmholtzEqGrad}
     d \sigma [V] = V \left( P P_{xx} - k P P_x \right)_{x = 0}
 \end{equation}
 
-Summing up, once the solution of the spectral problem (\ref{eq:HelmholtzEq}) is obtained, to calculate the shape derivative of the cost function $\mathcal{J} = s^2$ with respect to shape one needs to normalize the eigenfunction such way that $1 = \left<P,P\right>$, and then the desired gradient equals to (\ref{eq:HelmholtzEqGrad}).
+We can apply the given boundary condition here, thereby the shape derivative doesn't depend on $k$:
+
+\begin{equation}
+\label{eq:HelmholtzEqGradNok}
+    d \sigma [V] = V \left( P P_{xx} - P_x^2 \right)_{x = 0}
+\end{equation}
+
+Summing up, once the solution of the spectral problem (\ref{eq:HelmholtzEq}) is obtained, to calculate the shape derivative of the cost function $\mathcal{J} = s^2$ with respect to shape one needs to normalize the eigenfunction such way that $1 = \left<P,P\right>$, and then the desired gradient equals to (\ref{eq:HelmholtzEqGradNok}).
 
 \clearpage
 
@@ -263,9 +270,189 @@ Summing up, once the solution of the spectral problem (\ref{eq:HelmholtzEq}) is 
 \subsection{Shape derivatives and Hadamard structure}
 \subsection{Time dependent flow optimization}
 
-\section{Adjoints for acoustic problem}
+\section{Adjoint viscous acoustic problem}
+
+In this section we derive and discuss the adjoint formulation of the viscous acoustic problem. First, we formulate the governing equations of the adjoint state; second, the adjoint boundary conditions are presented, and third, the shape derivative in the Hadamard form is constructed.
+
 \subsection{Governing equations}
+
+Let us recall the formulation of the direct problem, (\ref{eq:strViscAc}). We will use the following form of the mass and momentum conservation equations in the frequency domain:
+
+\begin{subequations}
+\begin{align}
+\label{eq:strViscAc2}
+        s \hat{\rho} + div(\hat{u}) = 0, \\
+        s \hat{u}_i - \nabla_j \hat{\sigma}_{ij} = 0 .
+\end{align}
+\end{subequations}
+
+We aim to control the natural frequencies of the system, therefore the $s$ is the cost function $\mathcal{J} = s$. We obtain the augmented cost function by multiplying the first equation in (\ref{eq:strViscAc2}) by a scalar function $-w$ and the second equation by a vector function $v_i$. Now, the Lagrangian can be written as:
+
+\begin{equation}
+\mathcal{L} = \mathcal{J} - \left< -w, s \hat{\rho} + div(\hat{u}) \right> - \left< v_i, s \hat{u}_i - \nabla_j \hat{\sigma}_{ij} \right>
+\end{equation}
+
+We integrate the volume integrals by parts, and regroup the terms:
+
+\begin{equation}
+\label{eq:AdjLagrang}
+\mathcal{L} = \left< s w + div(v), \hat{\rho} \right> -  \left< s v_i - \nabla_j \sigma_{ij}^\dagger, \hat{u}_i \right> + \left\{ v_i, \hat{\sigma}_{ij}  n_j \right\} - \left\{ \sigma_{ij}^\dagger n_j, \hat{u}_i  \right\}
+\end{equation}
+
+As stated previously, $\left<\cdot, \cdot \right>$ here denotes volume integrals, while $\left\{ \cdot, \cdot \right\}$ is used to describe surface integrals. We denote the stress tensor operator acting on the co-state space $(w, v_i)$ as $\sigma_{ij}^\dagger$. Now, the variation of the Lagrangian with respect to $s$ and $\hat{\rho}, \hat{u}_i$ results in the adjoint set of equations:
+
+\begin{subequations}
+\label{eq:AdjAcoustProblem}
+\begin{flalign}
+    \label{eq:AdjAcoustNormCond}
+    &\delta s: \left< \hat{u}_i v_i - \rho w \right> = 1,\\&
+    \delta \hat{\rho}: s w + div(v) = 0,\\ &
+    \delta \hat{u}_i: s v_i -\nabla_j \sigma_{ij}^\dagger = 0
+\end{flalign}
+\end{subequations}
+
+Here, the first equation acts as a normalization condition, and the second and third equations describe the adjoint mass and momentum conservation laws. Note, that the state and co-state equations are equal; we expect the system to be self-adjoint. To show this, let us consider the possible boundary conditions.
+
 \subsection{Adjoint boundary conditions}
-\subsection{Shape derivatives and Hadamard structure}
+
+We consider three types of boundary conditions of the direct problem: no-slip boundary $\hat{u}_i = 0$, stress free boundary $\hat{\sigma}_{ij} n_j = 0$, and comliant boundary $Z \hat{u}_i = \hat{\sigma}_{ij} n_j$. For each of the boundary types we will focus on the surface integrals in (\ref{eq:AdjLagrang}) since the volumetric terms vanish due to the choice of the adjoint state equations.
+
+The general expression of the surface terms varitation reads as:
+
+\begin{equation}
+\label{eq:AdjLagrangVarSurface}
+\delta \mathcal{L} = \left\{ v_i , \delta \hat{\sigma}_{ij} n_j \right\} - \left\{\sigma_{ij}^\dagger  n_j,  \delta \hat{u}_i \right\} = 0
+\end{equation}
+
+\subsubsection{No-slip boundary}
+
+The variation of the no-slip Dirichlet boundary condition is zero, $\delta \hat{u}_i = 0$, which leaves us with the following condition:
+
+\begin{equation}
+\left\{ v_i, \delta \hat{\sigma}_{ij}  n_j \right\}_{\Gamma_{nsl}} = 0
+\end{equation}
+
+Since the stress value is not specified on the no-slip boundary, we set the adjoint velocity $v_i$ to zero:
+
+\begin{equation}
+v_i = 0 \ \ on \ \ \Gamma_{nsl}
+\end{equation}
+
+\subsubsection{Free boundary}
+
+On the free boundary, the stress vector is given thus its variation is zero. The Lagrangian variation then becomes
+
+\begin{equation}
+- \left\{\sigma_{ij}^\dagger  n_j,  \delta \hat{u}_i \right\}_{\Gamma_{free}} = 0
+\end{equation}
+
+And in order to eliminate the unknown velocity variation on the free boundary, we choose adjoint stress to be zero as well:
+
+\begin{equation}
+\sigma_{ij}^\dagger  n_j = 0 \ \ on \ \ \Gamma_{free}
+\end{equation}
+
+\subsubsection{Compliant boundary}
+
+The compliant boundary condition couples the velocity and the stress on the surface, therefore the variation of the boundary condition is $Z \delta \hat{u}_i = \delta \hat{\sigma}_{ij} n_j$. Although the impedance value depends on the oscillation frequency $Z = Z(s)$, we assume that the variation of $Z$ is zero, i.e. neglect that the boundary impedance is not constant. We substitute the variation expression into (\ref{eq:AdjLagrangVarSurface}) to obtain
+
+\begin{equation}
+\left\{ v_i , Z \delta \hat{u}_i \right\}_{\Gamma_{comp}} - \left\{\sigma_{ij}^\dagger  n_j,  \delta \hat{u}_i \right\}_{\Gamma_{comp}} = \left\{ Z v_i -\sigma_{ij}^\dagger  n_j , \delta \hat{u}_i \right\}_{\Gamma_{comp}} =  0
+\end{equation}
+
+The surface integral is proportional to unknown $\delta \hat{u}_i$, so the compliant adjoint boundary condition becomes
+
+\begin{equation}
+Z v_i = \sigma_{ij}^\dagger  n_j \ \ on \ \ \Gamma_{comp}
+\end{equation}
+
+First, note, that all the adjoint boundary conditions are equivalent to the direct formulation. This proves that the proposed problem is self-adjoint. Second, the compliant boundary is a generalized case of the no-slip and stress free boundaries; if $Z$ approaches infinity, the boundary acts like a no-slip, and represents a free surface if $Z \to 0$. Consequently, once we obtain any result for the compliant boundary, it can be easily applied to all other mentioned cases without any additional effort.
+
+
+Summing up, we have derived the adjoint boundary conditions for no-slip, stress free, and compliant boundaries. It appears, that they are similar to those of the direct problem, and as soon as the adjoint governing equations coincide with the primal formualtion, the problem is self-adjoint. The only step to calculate the adjoint quantities is to apply the normalization condition (\ref{eq:AdjAcoustNormCond}). 
+
+\subsection{Shape derivative and Hadamard structure}
+
+Let us recall the main concept of the Hadamard formula first: for a sufficiently smooth cost function, $\mathcal{J}$, the shape derivative $d\mathcal{J}[V]$ can be written as a surface integral of the given domain perturbation field $V$ and a functional $G$. In our case, we aim to construct the gradient of the cost function (eigenvalue) by deriving the integrand $G$ as a function of the direct and adjoint states: $G = G(\textbf{q}, \textbf{q}\dagger)$. Since the problem we consider is self-adjoint, the Hadamard formula yields:
+
+\begin{equation}
+d\mathcal{J}[V] = \int_{\partial \Omega} (V,n) G(\textbf{q}) d\Gamma
+\end{equation}
+
+As shown below, all considered boundary conditions thus shape derivatives can be translated to the single case of the compliant boundary. Using the chain rule, the material derivative of the boundary condition satisfies
+
+\begin{subequations}
+\begin{align}
+0 = d(Z \hat{u}_i - \hat{\sigma}_{ij} n_j)[V] = \\
+Z d\hat{u}_i[V] - d\hat{\sigma}_{ij}[V] n_j - \hat{\sigma}_{ij} d n_j[V]
+\end{align}
+\end{subequations}
+
+Following \cite{Schmidt2010}, the differential of a function $f_t$ satisfying the PDE constraint on a perturbed domain $\Omega_t = T_t(\Omega),$ where $T_t(x) = x + tV(x)$, can be transferred back to the original domain $\Omega$. Then, the material derivative $df[V]$ is related to local derivative $f'[V]$ as
+
+\begin{equation}
+df[V](x) = \left. \frac{d}{dt}\right|_{t=0} f_t(x_t) = \left. \frac{d}{dt}\right|_{t=0} f_t(x) + \frac{\partial f}{\partial x}  \left. \frac{d}{dt}\right|_{t=0} x_t = f'[V] + (V,\nabla) f
+\end{equation}
+
+Then, the boundary derivative terms read as
+
+\begin{subequations}
+\begin{align}
+d\hat{u}_i [V] = \hat{u}_i'[V] + (V,\nabla) \hat{u}_i,  \\
+d\hat{\sigma}_{ij}[V] = \hat{\sigma}_{ij}'[V] + (V,\nabla) \hat{\sigma}_{ij}
+\end{align}
+\end{subequations}
+
+Specifically, for the perturbation normal to the boundary $V = (V,n)n$, the shape derivative of the normal is given by tangent gradient of the displacement, $\nabla_i^{\Gamma} (V,n)$. The tangent gradient is defined as gradient minus its normal component $\nabla_i^{\Gamma} = \nabla_i  - n_i \partial_n$. 
+
+\begin{equation}
+d n_i[V] = - \nabla_i^{\Gamma} (V,n)
+\end{equation}
+
+The eigenvalue shape derivative of the problem (\ref{eq:AdjAcoustProblem}) now becomes
+
+\begin{subequations}
+\begin{align}
+&d \mathcal{J} [V] = \left\{ v_i , \hat{\sigma}_{ij}'[V] n_j \right\} &-& \left\{\sigma_{ij}^\dagger  n_j,  \hat{u}_i'[V] \right\} = \\
+&\left\{ v_i ,d\hat{\sigma}_{ij}[V] n_j - (V,\nabla) \hat{\sigma}_{ij} n_j \right\} &-& \left\{\sigma_{ij}^\dagger  n_j,  d\hat{u}_i [V] - (V,\nabla) \hat{u}_i \right\} = \\
+&\left\{ v_i , Z d\hat{u}_i [V] - \hat{\sigma}_{ij} dn_j[V] - (V,\nabla) \hat{\sigma}_{ij} n_j \right\} &-& \left\{\sigma_{ij}^\dagger  n_j,  d\hat{u}_i [V] - (V,\nabla) \hat{u}_i \right\} = \\
+&\left\{ \hat{u}_i , Z d\hat{u}_i [V] - \hat{\sigma}_{ij} dn_j[V] - (V,\nabla) \hat{\sigma}_{ij} n_j \right\} &-& \left\{\hat{\sigma}_{ij}  n_j,  d\hat{u}_i [V] - (V,\nabla) \hat{u}_i \right\} = \\
+&\left\{ \hat{u}_i , - \hat{\sigma}_{ij} dn_j[V] - (V,\nabla) \hat{\sigma}_{ij} n_j \right\} &-& \left\{\hat{\sigma}_{ij}  n_j,  - (V,\nabla) \hat{u}_i \right\}
+\end{align}
+\end{subequations}
+
+Considering only normal boundary displacement, the shape derivative becomes
+
+\begin{equation}
+\label{eq:ShapeDerAcoustNotHadam}
+d \mathcal{J} [V] = \left\{ (V,n) \left(\frac{\partial \hat{u}_i}{\partial n} n_j \hat{\sigma}_{ij} -  \hat{u}_i n_j \frac{\partial \hat{\sigma}_{ij}}{\partial n}\right) + \hat{u}_i \hat{\sigma}_{ij} \nabla_j^{\Gamma} (V,n) \right\}
+\end{equation}
+
+This is still not in the Hadamard form, so we apply the surface tangential Green's formula \cite{Delfour} to the last term. The relation holds for a smooth vector field $A$ and a scalar field $b$:
+
+\begin{equation}
+(A , \nabla^{\Gamma}) b = \kappa b (A,n)   - b \ div^{\Gamma} A
+\end{equation}
+
+Here $\kappa = div^{\Gamma}n$ describes the surface curvature. The transformation to the Hadamard form is given by
+
+\begin{equation}
+\hat{u}_i \hat{\sigma}_{ij} \nabla_j^{\Gamma} (V,n) = \kappa (V,n) \hat{u}_i \hat{\sigma}_{ij} n_j - (V,n) \nabla_j^{\Gamma} (\hat{u}_i \hat{\sigma}_{ij})
+\end{equation}
+
+Furthermore, using the definition of the tangential gradient, the relation holds:
+
+\begin{equation}
+\nabla_j^{\Gamma} (\hat{u}_i \hat{\sigma}_{ij}) + \hat{u}_i n_j \frac{\partial \hat{\sigma}_{ij}}{\partial n} = \nabla_j (\hat{u}_i \hat{\sigma}_{ij}) - \frac{\partial \hat{u}_i}{\partial n} n_j \hat{\sigma}_{ij} 
+\end{equation}
+
+After rearranging the terms in (\ref{eq:ShapeDerAcoustNotHadam}), the shape derivative of the system's eigenvalue becomes:
+
+\begin{equation}
+\label{eq:ShapeDerAcoustHadam}
+d s [V] = \left\{ (V,n) \left( 2 \frac{\partial \hat{u}_i}{\partial n} n_j \hat{\sigma}_{ij} - \nabla_j \left( \hat{u}_i \hat{\sigma}_{ij} \right)  + \kappa \hat{u}_i \hat{\sigma}_{ij} n_j \right) \right\}
+\end{equation}
+
+A few comments to be made regarding the shape derivative expressions. First, two forms (\ref{eq:ShapeDerAcoustNotHadam}) and (\ref{eq:ShapeDerAcoustHadam}) are equivalent. Second, they do not depend on $Z$, thus are applicable to any considered boundary type. Third, in case $\hat{u}_i$ or $\hat{\sigma}_{ij} n_j$ is zero, some of the terms vanish which can be useful in case of a single boundary type evaluation. 
 
 \section{Taylor testing for adjoint gradient}
